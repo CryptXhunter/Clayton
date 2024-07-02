@@ -1,5 +1,6 @@
 import asyncio
 from time import time
+from dateutil import parser
 from datetime import datetime, timezone
 from urllib.parse import unquote
 
@@ -180,7 +181,8 @@ class Claimer:
 
                     active_farm = mining_data['active_farm']
                     daily_attempts = mining_data['daily_attempts']
-                    start_time = datetime.fromisoformat(mining_data['start_time'].replace('Z', '+00:00'))
+                    start_time = parser.parse(mining_data['start_time'])
+                    start_time = start_time.astimezone(timezone.utc)
                     current_time = datetime.now(timezone.utc)
 
                     if daily_attempts > 0:
