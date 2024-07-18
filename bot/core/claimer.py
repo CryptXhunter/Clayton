@@ -70,7 +70,7 @@ class Claimer:
 
     async def send_claim(self, http_client: aiohttp.ClientSession) -> bool:
         try:
-            response = await http_client.post('https://tonclayton.fun/api/user/claim', json={})
+            response = await http_client.post('https://tonclayton.fun/api/user/claim-cl', json={})
             response.raise_for_status()
             return True
         except Exception as error:
@@ -130,7 +130,7 @@ class Claimer:
         await asyncio.sleep(random.uniform(2, 3))  # Wait 2-3 seconds
 
         # Progress through tile values
-        base_url = 'https://tonclayton.fun/api/game/save-max-tile'
+        base_url = 'https://tonclayton.fun/api/game/save-tile'
         tile_values = [4, 8, 16, 32, 64, 128, 256, 512]
         
         try:
