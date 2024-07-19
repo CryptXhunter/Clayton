@@ -17,7 +17,6 @@ from bot.exceptions import InvalidSession
 from .headers import headers
 import random
 
-
 class Claimer:
     def __init__(self, tg_client: Client):
         self.session_name = tg_client.name
@@ -114,18 +113,18 @@ class Claimer:
             await asyncio.sleep(delay=3)
             return {}
     
-    async def start_game(self, http_client: aiohttp.ClientSession) -> tuple[bool, dict]:
-        # Start a new game
+    async def perform_game(self, http_client: aiohttp.ClientSession) -> None:
+        # Start a new '512' game
         try:
-            response = await http_client.post('https://tonclayton.fun/api/game/start', json={})
+            response = await http_client.post('https://tonclayton.fun/api/game/start')
             response.raise_for_status()
-            logger.info(f"{self.session_name} | Game started successfully.")
+            logger.info(f"{self.session_name} | Game '512' started")
         except aiohttp.ClientResponseError as e:
             logger.error(f"{self.session_name} | Error starting game: {e}")
-            return False, {}
+            return
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error when starting game: {error}")
-            return False, {}
+            return
 
         await asyncio.sleep(random.uniform(2, 3))  # Wait 2-3 seconds
 
@@ -138,29 +137,70 @@ class Claimer:
                 payload = {"maxTile": tile}
                 response = await http_client.post(base_url, json=payload)
                 response.raise_for_status()
-                logger.info(f"{self.session_name} | Successfully saved tile {tile}")
+                logger.info(f"{self.session_name} | Successfully saved tile: {tile}")
                 
                 if tile != 512:  # Don't wait after the last tile
                     await asyncio.sleep(random.uniform(5, 15))
             
             # End the game after reaching 512
             await asyncio.sleep(random.uniform(2, 7))  # Wait 2-7 seconds after the last tile
-            response = await http_client.post('https://tonclayton.fun/api/game/over', json={})
+            response = await http_client.post('https://tonclayton.fun/api/game/over')
             response.raise_for_status()
-            logger.info(f"{self.session_name} | Game finished successfully")
-
-            # Fetch updated mining data after successful game
-            mining_data = await self.get_mining_data(http_client)
-            return True, mining_data
+            logger.success(f"{self.session_name} | Game '512' finished (+120 tokens)")
 
         except aiohttp.ClientResponseError as e:
             logger.error(f"{self.session_name} | Error during game play: {e}")
-            return False, {}
+            return
         except Exception as error:
             logger.error(f"{self.session_name} | Error during game play: {error}")
-            return False, {}
+            return
 
-
+    async def perform_stack(self, http_client: aiohttp.ClientSession) -> None:
+        # Start a new 'Stack' game
+        try:
+            response = await http_client.post('https://tonclayton.fun/api/stack/start')
+            response.raise_for_status()
+            logger.info(f"{self.session_name} | Game 'Stack' started")
+        except aiohttp.ClientResponseError as e:
+            logger.error(f"{self.session_name} | Error starting game: {e}")
+            return
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error when starting game: {error}")
+            return
+        
+        start_time = asyncio.get_event_loop().time()
+        end_time = start_time + 120  # 2 minutes
+        max_score = 150
+        score = 0
+        update_count = max_score / 10
+        interval = (120 - 5) / update_count # сalculate interval leaving 5 seconds to the end
+        try:
+            while score < max_score and (asyncio.get_event_loop().time() < end_time - 5):
+                score += 10
+                payload = {"score": score}
+                response = await http_client.post('https://tonclayton.fun/api/stack/update', json=payload)
+                response.raise_for_status()
+                logger.info(f"{self.session_name} | Successfully saved score: {score}")
+                await asyncio.sleep(interval)
+            
+            # End the game after 2 minutes
+            remaining_time = end_time - asyncio.get_event_loop().time()
+            if remaining_time > 0:
+                await asyncio.sleep(remaining_time)
+            response = await http_client.post('https://tonclayton.fun/api/stack/end')
+            response.raise_for_status()
+            response_json = await response.json()
+            earn = response_json.get('earn', 0)
+            if earn > 0:
+                logger.success(f"{self.session_name} | Game 'Stack' finished (+{earn} tokens)")
+            else:
+                logger.warning(f"{self.session_name} | Game 'Stack' failed")
+        except aiohttp.ClientResponseError as e:
+            logger.error(f"{self.session_name} | Error during game play: {e}")
+            return
+        except Exception as error:
+            logger.error(f"{self.session_name} | Error during game play: {error}")
+            return
 
     async def run(self, proxy: str | None) -> None:
         access_token_created_time = 0
@@ -179,6 +219,11 @@ class Claimer:
 
                     mining_data = await self.get_mining_data(http_client=http_client)
 
+                    # Log current status
+                    logger.info(f"{self.session_name} | Balance: {int(mining_data['tokens'])} | "
+                                f"Available to claim: {mining_data['storage']} | "
+                                f"Multiplier: {mining_data['multiplier']}")
+                    
                     active_farm = mining_data['active_farm']
                     daily_attempts = mining_data['daily_attempts']
                     start_time = parser.parse(mining_data['start_time'])
@@ -186,13 +231,15 @@ class Claimer:
                     current_time = datetime.now(timezone.utc)
 
                     if daily_attempts > 0:
-                        logger.info(f"{self.session_name} | Daily attempts remaining: {daily_attempts}")
+                        logger.info(f"{self.session_name} | Game attempts remaining: {daily_attempts}")
+                        games = ['512', 'Stack']
                         while daily_attempts > 0:
-                            if await self.start_game(http_client=http_client):
-                                logger.success(f"{self.session_name} | Game completed successfully.")
-                                daily_attempts -= 1
+                            game = random.choice(games)
+                            if game == '512':
+                                await self.perform_game(http_client=http_client)
                             else:
-                                logger.warning(f"{self.session_name} | Game could not be completed.")
+                                await self.perform_stack(http_client=http_client)
+                            daily_attempts -= 1
                             await asyncio.sleep(random.uniform(10, 15))  # Wait between games
                         continue
                     if not active_farm:
@@ -206,7 +253,9 @@ class Claimer:
                         time_to_wait = max(0, 6 * 3600 - time_elapsed.total_seconds())
                         
                         if time_to_wait > 0:
-                            logger.info(f"{self.session_name} | Farming active. Waiting for {time_to_wait/3600:.2f} hours before claiming and restarting.")
+                            hours = int(time_to_wait // 3600)
+                            minutes = int((time_to_wait % 3600) // 60)
+                            logger.info(f"{self.session_name} | Farming active. Waiting for {hours} hours and {minutes} minutes before claiming and restarting.")
                             await asyncio.sleep(time_to_wait)
                         
                         logger.info(f"{self.session_name} | Time to claim and restart farming.")
@@ -216,7 +265,7 @@ class Claimer:
                             logger.success(f"{self.session_name} | Farming restarted successfully.")
 
                     # Log current status
-                    logger.info(f"{self.session_name} | Balance: {mining_data['tokens']} | "
+                    logger.info(f"{self.session_name} | Balance: {int(mining_data['tokens'])} | "
                                 f"Available to claim: {mining_data['storage']} | "
                                 f"Multiplier: {mining_data['multiplier']}")
                     
