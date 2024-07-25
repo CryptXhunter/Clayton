@@ -54,22 +54,9 @@ class Claimer:
             logger.error(f"{self.session_name} | Unknown error during Authorization: {error}")
             await asyncio.sleep(delay=3)
 
-    async def get_mining_data(self, http_client: aiohttp.ClientSession) -> dict[str, str]:
-        try:
-            response = await http_client.post('https://tonclayton.fun/api/user/login')
-            response.raise_for_status()
-            
-            response_json = await response.json()
-            mining_data = response_json['user']
-
-            return mining_data
-        except Exception as error:
-            logger.error(f"{self.session_name} | Unknown error when getting Profile Data: {error}")
-            await asyncio.sleep(delay=3)
-
     async def send_claim(self, http_client: aiohttp.ClientSession) -> bool:
         try:
-            response = await http_client.post('https://tonclayton.fun/api/user/claim-cl', json={})
+            response = await http_client.post('https://tonclayton.fun/api/user/claim', json={})
             response.raise_for_status()
             return True
         except Exception as error:
@@ -170,7 +157,7 @@ class Claimer:
         
         start_time = asyncio.get_event_loop().time()
         end_time = start_time + 120  # 2 minutes
-        max_score = 150
+        max_score = 90
         score = 0
         update_count = max_score / 10
         interval = (120 - 5) / update_count # сalculate interval leaving 5 seconds to the end
