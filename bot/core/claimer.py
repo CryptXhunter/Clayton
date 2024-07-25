@@ -170,11 +170,9 @@ class Claimer:
                 logger.info(f"{self.session_name} | Successfully saved score: {score}")
                 await asyncio.sleep(interval)
             
-            # End the game after 2 minutes
-            remaining_time = end_time - asyncio.get_event_loop().time()
-            if remaining_time > 0:
-                await asyncio.sleep(remaining_time)
-            response = await http_client.post('https://tonclayton.fun/api/stack/end')
+            score += random.randint(2, 8)
+            payload = {"score": score}
+            response = await http_client.post('https://tonclayton.fun/api/stack/end', json=payload)
             response.raise_for_status()
             response_json = await response.json()
             earn = response_json.get('earn', 0)
@@ -244,6 +242,7 @@ class Claimer:
                             minutes = int((time_to_wait % 3600) // 60)
                             logger.info(f"{self.session_name} | Farming active. Waiting for {hours} hours and {minutes} minutes before claiming and restarting.")
                             await asyncio.sleep(time_to_wait)
+                            continue
                         
                         logger.info(f"{self.session_name} | Time to claim and restart farming.")
                         if await self.send_claim(http_client=http_client):
