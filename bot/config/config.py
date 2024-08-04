@@ -10,4 +10,8 @@ class Settings(BaseSettings):
     USE_PROXY_FROM_FILE: bool = False
 
 
-settings = Settings()
+try:
+	settings = Settings()
+except Exception as error:
+	log.error(error)
+	settings = False

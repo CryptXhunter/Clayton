@@ -1,4 +1,4 @@
-# Bot for [Clayton](https://alexell.ru/cc/clayton)
+# Bot for [Clayton](https://alexell.pro/cc/clayton)
 
 ![img1](.github/images/demo.png)
 
