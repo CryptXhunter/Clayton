@@ -3,12 +3,12 @@ from bot.utils import logger
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_ignore_empty=True)
+	model_config = SettingsConfigDict(env_file=".env", env_ignore_empty=True)
 
-    API_ID: int
-    API_HASH: str
+	API_ID: int
+	API_HASH: str
 
-    USE_PROXY_FROM_FILE: bool = False
+	USE_PROXY_FROM_FILE: bool = False
 
 
 try:
