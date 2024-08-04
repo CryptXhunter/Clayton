@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from bot.utils import logger
 
 
 class Settings(BaseSettings):
@@ -13,5 +14,5 @@ class Settings(BaseSettings):
 try:
 	settings = Settings()
 except Exception as error:
-	log.error(error)
+	logger.error(error)
 	settings = False

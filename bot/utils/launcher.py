@@ -68,7 +68,7 @@ async def get_tg_clients() -> list[Client]:
 
 async def process() -> None:
 	if not settings:
-		log.warning(f"Please fix the above errors in the .env file")
+		logger.warning(f"Please fix the above errors in the .env file")
 		return
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', '--action', type=int, help='Action to perform')
