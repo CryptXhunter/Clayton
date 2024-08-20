@@ -113,7 +113,7 @@ class Claimer:
 			logger.error(f"{self.session_name} | Unknown error when starting game: {error}")
 			return
 
-		await asyncio.sleep(random.uniform(2, 3))  # Wait 2-3 seconds
+		await asyncio.sleep(random.randint(2, 3))  # Sleep 2-3 seconds
 
 		# Progress through tile values
 		base_url = 'https://tonclayton.fun/api/game/save-tile'
@@ -126,11 +126,11 @@ class Claimer:
 				response.raise_for_status()
 				logger.info(f"{self.session_name} | Successfully saved tile: {tile}")
 				
-				if tile != 512:  # Don't wait after the last tile
-					await asyncio.sleep(random.uniform(5, 15))
+				if tile != 512:  # Don't sleep after the last tile
+					await asyncio.sleep(random.randint(5, 15))
 			
 			# End the game after reaching 512
-			await asyncio.sleep(random.uniform(2, 7))  # Wait 2-7 seconds after the last tile
+			await asyncio.sleep(random.randint(2, 7))  # Sleep 2-7 seconds after the last tile
 			response = await http_client.post('https://tonclayton.fun/api/game/over')
 			response.raise_for_status()
 			logger.success(f"{self.session_name} | Game '512' finished (+120 tokens)")
@@ -215,6 +215,7 @@ class Claimer:
 					start_time = start_time.astimezone(timezone.utc)
 					current_time = datetime.now(timezone.utc)
 
+					await asyncio.sleep(random.randint(2, 4))
 					if daily_attempts > 0:
 						logger.info(f"{self.session_name} | Game attempts remaining: {daily_attempts}")
 						games = ['512', 'Stack']
@@ -225,8 +226,10 @@ class Claimer:
 							else:
 								await self.perform_stack(http_client=http_client)
 							daily_attempts -= 1
-							await asyncio.sleep(random.uniform(10, 15))  # Wait between games
+							await asyncio.sleep(random.randint(10, 15))  # Sleep between games
 						continue
+					
+					await asyncio.sleep(random.randint(2, 4))
 					if not active_farm:
 						logger.info(f"{self.session_name} | Farm not active. Claiming and starting farming.")
 						if await self.send_claim(http_client=http_client):

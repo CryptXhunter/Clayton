@@ -18,6 +18,7 @@
 |-------------------------|----------------------------------------------------------------------------|
 | **API_ID / API_HASH**   | Platform data from which to launch a Telegram session (stock - Android)    |
 | **ERRORS_BEFORE_STOP**  | The number of failed requests after which the bot will stop                |
+| **SLEEP_BETWEEN_START** | Sleep before start each session (e.g. [20, 360])                           |
 | **USE_PROXY_FROM_FILE** | Whether to use proxy from the `bot/config/proxies.txt` file (True / False) |
 
 You can obtain the **API_ID** and **API_HASH** after creating an application at [my.telegram.org/apps](https://my.telegram.org/apps)
