@@ -101,11 +101,11 @@ class Claimer:
 			return {}
 	
 	async def perform_game(self, http_client: aiohttp.ClientSession) -> None:
-		# Start a new '512' game
+		# Start a new '1024' game
 		try:
 			response = await http_client.post('https://tonclayton.fun/api/game/start')
 			response.raise_for_status()
-			logger.info(f"{self.session_name} | Game '512' started")
+			logger.info(f"{self.session_name} | Game '1024' started")
 		except aiohttp.ClientResponseError as e:
 			logger.error(f"{self.session_name} | Error starting game: {e}")
 			return
@@ -117,24 +117,30 @@ class Claimer:
 
 		# Progress through tile values
 		base_url = 'https://tonclayton.fun/api/game/save-tile'
-		tile_values = [4, 8, 16, 32, 64, 128, 256, 512]
-		
+		tile_values = [4, 8, 16, 32, 64, 128, 256, 512, 1024]
+		tiles_count = len(tile_values)
+		start_time = asyncio.get_event_loop().time()
+		end_time = start_time + 150  # 2:30
+		interval = (150 - 5) / tiles_count # сalculate interval leaving 5 seconds to the end
 		try:
-			for tile in tile_values:
-				payload = {"maxTile": tile}
+			i = 0
+			while i < tiles_count and (asyncio.get_event_loop().time() < end_time - 5):
+				payload = {"maxTile": tile_values[i]}
 				response = await http_client.post(base_url, json=payload)
 				response.raise_for_status()
-				logger.info(f"{self.session_name} | Successfully saved tile: {tile}")
-				
-				if tile != 512:  # Don't sleep after the last tile
-					await asyncio.sleep(random.randint(5, 15))
-			
-			# End the game after reaching 512
-			await asyncio.sleep(random.randint(2, 7))  # Sleep 2-7 seconds after the last tile
+				logger.info(f"{self.session_name} | Successfully saved tile: {tile_values[i]}")
+				i += 1
+				if i < tiles_count: await asyncio.sleep(interval)
+
+			# End the game after reaching 1024
 			response = await http_client.post('https://tonclayton.fun/api/game/over')
 			response.raise_for_status()
-			logger.success(f"{self.session_name} | Game '512' finished (+120 tokens)")
-
+			response_json = await response.json()
+			earn = response_json.get('earn', 0)
+			if earn > 0:
+				logger.success(f"{self.session_name} | Game '1024' finished (+{earn} tokens)")
+			else:
+				logger.warning(f"{self.session_name} | Game '1024' failed")
 		except aiohttp.ClientResponseError as e:
 			logger.error(f"{self.session_name} | Error during game play: {e}")
 			return
@@ -156,7 +162,7 @@ class Claimer:
 			return
 		
 		start_time = asyncio.get_event_loop().time()
-		end_time = start_time + 120  # 2 minutes
+		end_time = start_time + 120  # 2:00
 		max_score = 90
 		score = 0
 		update_count = max_score / 10
@@ -218,10 +224,10 @@ class Claimer:
 					await asyncio.sleep(random.randint(2, 4))
 					if daily_attempts > 0:
 						logger.info(f"{self.session_name} | Game attempts remaining: {daily_attempts}")
-						games = ['512', 'Stack']
+						games = ['1024', 'Stack']
 						while daily_attempts > 0:
 							game = random.choice(games)
-							if game == '512':
+							if game == '1024':
 								await self.perform_game(http_client=http_client)
 							else:
 								await self.perform_stack(http_client=http_client)
