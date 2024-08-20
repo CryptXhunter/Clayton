@@ -10,7 +10,7 @@
 | Multithreading                                                 |     ✅     |
 | Binding a proxy to a session                                   |     ✅     |
 | Automatic farming                                              |     ✅     |
-| Automatic games (Stack and 512)                                |     ✅     |
+| Automatic games (Stack and 1024)                               |     ✅     |
 | Docker                                                         |     ✅     |
 
 ## [Options](https://github.com/Alexell/ClaytonBOT/blob/main/.env-example)
