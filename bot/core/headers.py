@@ -1,6 +1,5 @@
 headers = {
 	'Accept': '*/*',
-	'Accept-Encoding': 'gzip, deflate, br, zstd',
 	'Accept-Language': 'en-US,en;q=0.9,uk-UA;q=0.8,uk;q=0.7,ru;q=0.6,zh-CN;q=0.5,zh;q=0.4',
 	'Content-Type': 'application/json',
 	'Priority': 'u=1, i',

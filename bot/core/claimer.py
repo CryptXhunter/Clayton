@@ -37,7 +37,7 @@ class Claimer:
 				bot=await self.tg_client.resolve_peer('claytoncoinbot'),
 				platform='android',
 				from_bot_menu=False,
-				url='https://tonclayton.fun/api/user/subscribe'
+				url='https://tonclayton.fun/'
 			))
 			auth_url = web_view.url
 			tg_web_data = unquote(
